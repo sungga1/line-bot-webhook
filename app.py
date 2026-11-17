@@ -24,8 +24,7 @@ def refresh_token():
         if res.status_code == 200:
             cache["access_token"] = res.json()['access_token']
             return cache["access_token"]
-    except Exception:
-        pass
+    except: pass
     return None
 
 def get_all_ri():
@@ -40,15 +39,15 @@ def get_all_ri():
         new_token = refresh_token()
         if new_token:
             headers["Authorization"] = f"Bearer {new_token}"
-            res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
 
-try:
+res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
+    try:
         return res.json()["result"]["content"][0]["data"]["list"]
-    except Exception:
-        return []
+    except: return []
 
 # --- Webhook ---
 handler = WebhookHandler(LINE_SECRET)
+line_bot_api = LineBotApi(LINE_TOKEN)
 
 @app.route("/line/webhook", methods=['POST'])
 def callback():
