@@ -12,11 +12,35 @@ handler = WebhookHandler('5a5f2ad36f44368e77a508f3421b5140')
 MY_GROUP_ID = 'ใส่_GROUP_ID'
 
 # ฟังก์ชันดึงข้อมูล RI จาก FlowAccount
+import requests
+
 def get_ri_from_flowaccount():
-    # ตรงนี้คือส่วนที่คุณดึงข้อมูล ให้เพิ่ม log บรรทัดนี้เข้าไปครับ
-    items = ... # โค้ดดึงข้อมูลของคุณ
-    print("DEBUG: รายการที่ดึงได้จาก FlowAccount คือ: " + str(items))
-    return items
+    # นี่คือ Token ที่เราใช้ตอนเทสกันครับ (ถ้าเป็น Token ชั่วคราว อาจต้องอัปเดต)
+    TOKEN="sIpsVv...lFU="
+    
+    # URL ที่เราเทสกันแล้วได้ข้อมูล
+    url = "https://mcp.flowaccount.com/mcp"
+    headers = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
+    
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+            "name": "expense__list_receiving_inventory",
+            "arguments": {"page": 1, "sort_by": "publishedon:desc"}
+        }
+    }
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        data = response.json()
+        items = data["result"]["content"][0]["data"]["list"]
+        print(f"DEBUG: ดึงข้อมูลสำเร็จ ได้มา {len(items)} รายการ")
+        return items
+    except Exception as e:
+        print(f"DEBUG: ดึงข้อมูลพลาด: {e}")
+        return []
 
 def check_and_notify():
     today = datetime.datetime.now().date()
