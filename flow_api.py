@@ -22,11 +22,16 @@ def get_all_ri():
                "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1}}}
     res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
     
+    # ถ้า session หมดอายุ ให้ลอง refresh token 1 ครั้ง
     if res.status_code == 401 or "session_expired" in res.text:
         new_token = refresh_token()
         if new_token:
             headers["Authorization"] = f"Bearer {new_token}"
             res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
-    try:
-        return res.json()["result"]["content"][0]["data"]["list"]
-    except: return []
+            
+    # DEBUG: ให้บอทคายข้อมูลดิบออกมาทั้งหมด
+    data = res.json()
+    all_items = data["result"]["content"][0]["data"]["list"]
+    print(f"DEBUG: ข้อมูลทั้งหมดที่ดึงได้คือ: {all_items}") 
+    
+    return all_items # ส่งข้อมูลทั้งหมดไปเลย ไม่ต้องกรอง
