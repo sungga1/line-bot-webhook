@@ -1,39 +1,59 @@
-import os
 import requests
-import json
+import time
+import auth_manager
 
-cache = {"access_token": None}
-# ให้ใช้ os.environ.get เพื่อดึงค่าจาก Render Environment
-REFRESH_TOKEN = os.environ.get('REFRESH_TOKEN')
-CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
+MCP_ENDPOINT = "https://mcp.flowaccount.com/mcp"
 
-def refresh_token():
-    if not REFRESH_TOKEN: return None
-    payload = {"grant_type": "refresh_token", "refresh_token": REFRESH_TOKEN, "client_id": CLIENT_ID}
-    try:
-        res = requests.post("https://mcp.flowaccount.com/oauth/token", data=payload)
-        if res.status_code == 200:
-            cache["access_token"] = res.json().get('access_token')
-            return cache["access_token"]
-    except: pass
-    return None
+def _post_with_retry(url, headers, json_data, max_attempts=3, retry_delay=3):
+    """
+    ระบบ Retry Logic เลียนแบบโปรแกรม PC
+    ถ้าเน็ตขัดข้อง จะลองใหม่ 3 ครั้งก่อนยอมแพ้
+    """
+    for attempt in range(1, max_attempts + 1):
+        try:
+            res = requests.post(url, headers=headers, json=json_data, timeout=30)
+            return res
+        except requests.exceptions.RequestException as e:
+            if attempt < max_attempts:
+                print(f"⚠️ เน็ตแกว่ง ลองใหม่รอบที่ {attempt}... ({e})")
+                time.sleep(retry_delay)
+            else:
+                print(f"❌ เชื่อมต่อ FlowAccount ไม่สำเร็จ: {e}")
+                raise e
 
 def get_all_ri():
-    if not cache["access_token"]: cache["access_token"] = refresh_token()
-    headers = {"Authorization": f"Bearer {cache['access_token']}", "Content-Type": "application/json"}
-    payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", 
-               "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1, "pageSize": 50}}}
+    """
+    ดึงรายการรับสินค้า (RI) โดยเรียกผ่านฟังก์ชัน Retry
+    """
+    token = auth_manager.get_valid_token()
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    payload = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+            "name": "expense__list_receiving_inventory",
+            "arguments": {"page": 1, "pageSize": 50}
+        }
+    }
     
     try:
-        res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
+        res = _post_with_retry(MCP_ENDPOINT, headers=headers, json_data=payload)
         data = res.json()
         
-        # ตรวจสอบ Error ก่อนจะไปดึงข้อมูล
-        if "error" in data and data["error"] == "session_expired":
-            return "SESSION_EXPIRED_MARKER" # <--- สัญญาณเตือนพิเศษ
-            
+        # ตรวจสอบสัญญาณ Session หมดอายุ (ถอดแบบจากโปรแกรม PC)
         if "result" in data and data["result"].get("content"):
-            return data["result"]["content"][0]["text"]
-        return "ไม่พบข้อมูลจาก API"
+            content_text = str(data["result"]["content"][0].get("text", ""))
+            if "session_expired" in content_text or "unauthorized" in content_text:
+                return "SESSION_EXPIRED_MARKER"
+        
+        # ดึงข้อมูลรายการ
+        if "result" in data and data["result"].get("content"):
+            import json
+            content = data["result"]["content"][0]
+            inner = json.loads(content.get("text", "{}"))
+            return inner.get("data", {}).get("list", [])
+        return []
     except Exception as e:
-        return f"Error: {str(e)}"
+        print(f"DEBUG: get_all_ri error: {e}")
+        return []
