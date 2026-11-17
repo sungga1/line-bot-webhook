@@ -13,9 +13,10 @@ MY_GROUP_ID = 'ใส่_GROUP_ID'
 
 # ฟังก์ชันดึงข้อมูล RI จาก FlowAccount
 def get_ri_from_flowaccount():
-    # ใช้ token เดียวกับที่คุณใช้ดึงข้อมูลก่อนหน้านี้
-    # คืนค่า list ของรายการที่มี {'documentSerial': '...', 'contactName': '...', 'total': ..., 'dueDate': '2026-...' }
-    return [] # ใส่ตรรกะดึงข้อมูลของคุณที่นี่
+    # ตรงนี้คือส่วนที่คุณดึงข้อมูล ให้เพิ่ม log บรรทัดนี้เข้าไปครับ
+    items = ... # โค้ดดึงข้อมูลของคุณ
+    print("DEBUG: รายการที่ดึงได้จาก FlowAccount คือ: " + str(items))
+    return items
 
 def check_and_notify():
     today = datetime.datetime.now().date()
