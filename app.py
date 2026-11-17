@@ -17,7 +17,6 @@ FLOW_ACCESS_TOKEN='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZGRjk2MDE2NjdFMDhCNjdGRTE4QjIxQ
 def get_all_ri():
     url = "https://mcp.flowaccount.com/mcp"
     headers = {"Authorization": f"Bearer {FLOW_ACCESS_TOKEN}", "Content-Type": "application/json"}
-    # ตรวจสอบแน่ชัดว่า payload ถูกนิยามไว้ที่นี่
     payload = {
         "jsonrpc": "2.0", "id": 1, "method": "tools/call",
         "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1, "sort_by": "publishedon:desc"}}
@@ -25,6 +24,9 @@ def get_all_ri():
     try:
         response = requests.post(url, json=payload, headers=headers)
         data = response.json()
+        # --- เพิ่มบรรทัดนี้ ---
+        print(f"DEBUG: ข้อมูลที่ได้รับจาก FlowAccount: {data}")
+        # -------------------
         return data["result"]["content"][0]["data"]["list"]
     except Exception as e:
         print(f"DEBUG: Error in get_all_ri: {e}")
