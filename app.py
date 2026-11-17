@@ -14,7 +14,7 @@ MY_GROUP_ID = 'C646395b06063544d6233261a86851493'
 REFRESH_TOKEN='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZGRjk2MDE2NjdFMDhCNjdGRTE4QjIxQ0FERjQzOTAyNDQ0N0E2NzQiLCJ0eXAiOiJhdCtqd3QiLCJ4NXQiOiJiX2xnRm1mZ2kyZi1HTEljcmZRNUFrUkhwblEifQ.eyJuYmYiOjE3OTE4NTUxNDEsImV4cCI6MTc5MTg1ODc0MSwiaXNzIjoiaHR0cHM6Ly9hdXRoLmZsb3dhY2NvdW50LmNvbSIsImF1ZCI6ImZsb3dhY2NvdW50LWFwaSIsImNsaWVudF9pZCI6Im1jcC1nYXRld2F5LXBrY2UiLCJzdWIiOiIxNTc5MzA4IiwiYXV0aF90aW1lIjoxNzkxMDgyNDUzLCJpZHAiOiJHb29nbGUiLCJjdXJyZW50Q29tcGFueUlkIjoiMjE0NzEwMyIsInN1cHBvcnRDb2RlIjoiTjE2MjI5NzAiLCJwZXJtaXNzaW9uIjoiNTQ5NzU1ODEzODg3Iiwic2NvcGUiOlsib3BlbmlkIiwicHJvZmlsZSIsImZsb3dhY2NvdW50LWFwaSIsIm9mZmxpbmVfYWNjZXNzIl0sImFtciI6WyJleHRlcm5hbCJdfQ.irefag82aNE3WSAm01MxzGtRO0QOjnbCdBwOwdKkavPEPtZMy1du9t-AehArZ1GAcmpPiZEeBhvM2Yx30UNw6tLXdRzZC0-Nywyy52sgnWAUajjP4mD8gu2bFiqRJhfzLf6y8oqPdoGHG0qD8ovz167xJW-gc9hB_ZcUuxBaQLgYN_cuudSwLbqj0HntCb1O8RJNKGUJAIxKezDJ7Th1qrprkFV6_n6f-0arVVS3onKdwMC8qLCXz2COe1x_0rIJfozoB4FAcxf8JyZY7VPSvdevq4ZgeX6ucoMbbld_AztlE1LJyMGRJXiuMv4a2U4-JL-MWEGt8QwNe5ipC-9Lfg'
 CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
 
-# --- ระบบ Token ใน Memory ---
+# --- ระบบ Token ---
 cache = {"access_token": None}
 
 def refresh_token():
@@ -24,7 +24,8 @@ def refresh_token():
         if res.status_code == 200:
             cache["access_token"] = res.json()['access_token']
             return cache["access_token"]
-    except: pass
+    except Exception:
+        pass
     return None
 
 def get_all_ri():
@@ -43,16 +44,18 @@ def get_all_ri():
 
 try:
         return res.json()["result"]["content"][0]["data"]["list"]
-    except: return []
+    except Exception:
+        return []
 
-# --- LINE Webhook ---
+# --- Webhook ---
 handler = WebhookHandler(LINE_SECRET)
 
 @app.route("/line/webhook", methods=['POST'])
 def callback():
     try:
         handler.handle(request.get_data(as_text=True), request.headers.get('X-Line-Signature'))
-    except InvalidSignatureError: abort(400)
+    except InvalidSignatureError:
+        abort(400)
     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
