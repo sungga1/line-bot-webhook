@@ -2,13 +2,11 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from linebot.exceptions import InvalidSignatureError
-import os
 
 app = Flask(__name__)
 
-# แก้ไขที่นี่ให้เป็นรหัสของคุณ
-line_bot_api = LineBotApi('sIpsVvwuaSiSHk5SyZgMhLzI6bXtNVInBR7Wpgv241cgbPi9QkeukSXrJGGWCpBGnH5OSZym9oI7wEEeptiZ2Mi4ackRhFbejdlLpnjO+TYst9hRSSyYTkA6fJOHAyZxH2/xXVAxJBzDXjtBnN8uAQdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('5a5f2ad36f44368e77a508f3421b5140')
+line_bot_api = LineBotApi('ใส่_CHANNEL_ACCESS_TOKEN_ที่นี่')
+handler = WebhookHandler('ใส่_CHANNEL_SECRET_ที่นี่')
 
 @app.route("/line/webhook", methods=['POST'])
 def callback():
@@ -22,10 +20,9 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    msg = event.message.text
-    if 'ดึง ID กลุ่ม' in msg:
-        group_id = event.source.group_id
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f"Group ID คือ: {group_id}"))
+    # ไม่ต้องมี if แล้ว ตอบทุกอย่างที่พิมพ์เข้ามา!
+    reply_text = f"บอทได้รับข้อความแล้ว: {event.message.text}"
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
 
 if __name__ == "__main__":
     app.run(port=8080)
