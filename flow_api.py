@@ -2,7 +2,8 @@ import requests
 import json
 
 cache = {"access_token": None}
-REFRESH_TOKEN='NbYe3s...GE8M'
+# ใส่ Refresh Token ใหม่ที่นี่
+REFRESH_TOKEN='EYy-oB6L1gZ-M9tJ0y7n-K3lVfN4j5i9Yq2tZ_vB_Ww.z3Xm_pQ8u_V1wT6eR0qA9w'
 CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
 
 def refresh_token():
@@ -24,18 +25,10 @@ def get_all_ri():
     try:
         res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
         data = res.json()
-        
-        # ตรวจสอบว่ามี error หรือไม่
         if "result" in data and "content" in data["result"]:
             content = data["result"]["content"][0]
             if "text" in content:
-                inner_data = json.loads(content["text"])
-                # ถ้าเป็น error จาก FlowAccount ให้คืนค่าว่าง
-                if inner_data.get("status") == "error":
-                    print(f"DEBUG: FlowAccount Error = {inner_data.get('message')}")
-                    return []
-                return inner_data.get("data", {}).get("list", [])
+                inner = json.loads(content["text"])
+                return inner.get("data", {}).get("list", [])
         return []
-    except Exception as e:
-        print(f"DEBUG: Error = {e}")
-        return []
+    except: return []
