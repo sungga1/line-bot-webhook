@@ -49,11 +49,25 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    if 'ค้างจ่าย' in event.message.text:
+    msg = event.message.text
+    if 'ค้างจ่าย' in msg:
+        today = datetime.datetime.now().date()
         items = get_ri_from_flowaccount()
-        # กรองเฉพาะที่ยังไม่จ่าย (status awaiting) และสรุปให้ดู
-        reply = "ยอด RI ที่ต้องจ่าย:\n" + "\n".join([f"• {i['documentSerial']} | {i['total']} บ." for i in items])
+        awa_items = [i for i in items if i['status'].lower().startswith('awa')]
+        
+        if not awa_items:
+            reply = "ไม่มีรายการที่ต้องจ่ายในระบบครับ"
+        else:
+            # เรียงลำดับรายการตามวันครบกำหนด
+            awa_items.sort(key=lambda x: x['dueDate'])
+            
+            # สรุปรายการในรอบ 30 วัน
+            upcoming = [i for i in awa_items if (datetime.datetime.strptime(i['dueDate'][:10], '%Y-%m-%d').date() - today).days <= 30]
+            
+            if upcoming:
+                reply = "ยอดค้างจ่าย (30 วันข้างหน้า):\n" + "\n".join([f"• {i['documentSerial']} | {i['total']} บ. (ครบ {i['dueDate'][:10]})" for i in upcoming])
+            else:
+                next_item = awa_items[0] # รายการที่เร็วที่สุดที่เหลืออยู่
+                reply = f"ไม่มีรายการใน 30 วันนี้ครับ\nรายการถัดไป: {next_item['documentSerial']} ต้องจ่าย {next_item['dueDate'][:10]} ยอด {next_item['total']} บาท"
+        
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
-
-if __name__ == "__main__":
-    app.run(port=8080)
