@@ -58,8 +58,10 @@ def handle_message(event):
         if not awa_items:
             reply = "ไม่มีรายการที่ต้องจ่ายในระบบครับ"
         else:
-            # เรียงลำดับรายการตามวันครบกำหนด
+            # เรียงลำดับรายการตามวันครบกำหนดจากเร็วไปช้า
             awa_items.sort(key=lambda x: x['dueDate'])
+            next_item = awa_items[0] # รายการที่เร็วที่สุดเสมอ
+            due_date = datetime.datetime.strptime(next_item['dueDate'][:10], '%Y-%m-%d').date()
             
             # สรุปรายการในรอบ 30 วัน
             upcoming = [i for i in awa_items if (datetime.datetime.strptime(i['dueDate'][:10], '%Y-%m-%d').date() - today).days <= 30]
@@ -67,7 +69,7 @@ def handle_message(event):
             if upcoming:
                 reply = "ยอดค้างจ่าย (30 วันข้างหน้า):\n" + "\n".join([f"• {i['documentSerial']} | {i['total']} บ. (ครบ {i['dueDate'][:10]})" for i in upcoming])
             else:
-                next_item = awa_items[0] # รายการที่เร็วที่สุดที่เหลืออยู่
-                reply = f"ไม่มีรายการใน 30 วันนี้ครับ\nรายการถัดไป: {next_item['documentSerial']} ต้องจ่าย {next_item['dueDate'][:10]} ยอด {next_item['total']} บาท"
+                # ถ้าไม่มีใน 30 วัน ก็บอกรายการที่เร็วที่สุดถัดไปให้
+                reply = f"ไม่มีรายการที่ต้องจ่ายใน 30 วันนี้ครับ\n\nรายการถัดไปที่เร็วสุด:\n{next_item['documentSerial']} ต้องจ่าย {next_item['dueDate'][:10]} ยอด {next_item['total']} บาท"
         
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
