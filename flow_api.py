@@ -2,7 +2,7 @@ import requests
 import json
 
 cache = {"access_token": None}
-REFRESH_TOKEN='NbYe3s...GE8M'
+REFRESH_TOKEN='NbYe3sbPrvGk8EaV1UYNcexhdKGoxsTVPpxFwEAGE8M' # ใส่ Refresh Token ของคุณ
 CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
 
 def refresh_token():
