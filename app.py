@@ -15,8 +15,8 @@ log = logging.getLogger("app")
 app = Flask(__name__)
 
 # อ่านค่าลับจาก environment variable ไม่ฝังในโค้ด
-line_bot_api = LineBotApi(os.environ["sIpsVvwuaSiSHk5SyZgMhLzI6bXtNVInBR7Wpgv241cgbPi9QkeukSXrJGGWCpBGnH5OSZym9oI7wEEeptiZ2Mi4ackRhFbejdlLpnjO+TYst9hRSSyYTkA6fJOHAyZxH2/xXVAxJBzDXjtBnN8uAQdB04t89/1O/w1cDnyilFU="])
-handler = WebhookHandler(os.environ["5a5f2ad36f44368e77a508f3421b5140"])
+line_bot_api = LineBotApi(os.environ["LINE_TOKEN"])
+handler = WebhookHandler(os.environ["LINE_SECRET"])
 
 
 @app.route("/line/webhook", methods=["POST"])
