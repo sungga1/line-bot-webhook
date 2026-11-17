@@ -53,18 +53,22 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     if 'ค้างจ่าย' in event.message.text:
-        items = get_all_ri()
-        awa_items = sorted([i for i in items if i['status'].lower().startswith('awa')], key=lambda x: x['dueDate'])
+        today = datetime.datetime.now().date()
+        items = get_all_ri() # ดึงรายการทั้งหมด
         
-        if not awa_items:
-            reply = "ไม่มีรายการที่ต้องจ่ายในระบบครับ"
+        # กรองเอาเฉพาะรายการที่สถานะไม่ใช่ 'paid' (เพื่อดูรายการที่ค้างอยู่ทั้งหมด)
+        unpaid_items = sorted([i for i in items if i['status'].lower() != 'paid'], key=lambda x: x['dueDate'])
+        
+        if not unpaid_items:
+            reply = "ไม่มีรายการค้างจ่ายในระบบครับ"
         else:
-            # ลิสต์ทั้งหมดที่ค้างอยู่
-            reply = "รายการค้างจ่ายทั้งหมด:\n" + "\n".join([f"• {i['documentSerial']} | {i['total']} บ. (ครบ {i['dueDate'][:10]})" for i in awa_items])
-            # ถ้าไม่มีรายการเร็วๆ นี้ ก็บอกรายการถัดไปให้ชัดเจน
-            reply += f"\n\nรายการถัดไปที่ต้องจ่ายเร็วสุด:\n{awa_items[0]['documentSerial']} จ่ายวันที่ {awa_items[0]['dueDate'][:10]} ยอด {awa_items[0]['total']} บ."
+            # รายการที่ต้องจ่ายใน 30 วัน
+            upcoming = [i for i in unpaid_items if (datetime.datetime.strptime(i['dueDate'][:10], '%Y-%m-%d').date() - today).days <= 30]
+            
+            if upcoming:
+                reply = "ยอดค้างจ่าย (30 วันข้างหน้า):\n" + "\n".join([f"• {i['documentSerial']} | {i['total']} บ. (ครบ {i['dueDate'][:10]})" for i in upcoming])
+            else:
+                next_item = unpaid_items[0]
+                reply = f"ไม่มีรายการที่ต้องจ่ายใน 30 วันนี้ครับ\n\nรายการถัดไปที่ต้องจ่ายเร็วสุด:\n{next_item['documentSerial']} จ่ายวันที่ {next_item['dueDate'][:10]} ยอด {next_item['total']} บ."
         
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
-
-if __name__ == "__main__":
-    app.run(port=8080)
