@@ -7,8 +7,8 @@ import os
 app = Flask(__name__)
 
 # แก้ไขที่นี่ให้เป็นรหัสของคุณ
-line_bot_api = LineBotApi('ใส่_CHANNEL_ACCESS_TOKEN_ที่นี่')
-handler = WebhookHandler('ใส่_CHANNEL_SECRET_ที่นี่')
+line_bot_api = LineBotApi('sIpsVvwuaSiSHk5SyZgMhLzI6bXtNVInBR7Wpgv241cgbPi9QkeukSXrJGGWCpBGnH5OSZym9oI7wEEeptiZ2Mi4ackRhFbejdlLpnjO+TYst9hRSSyYTkA6fJOHAyZxH2/xXVAxJBzDXjtBnN8uAQdB04t89/1O/w1cDnyilFU=')
+handler = WebhookHandler('5a5f2ad36f44368e77a508f3421b5140')
 
 @app.route("/line/webhook", methods=['POST'])
 def callback():
