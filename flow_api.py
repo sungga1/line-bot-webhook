@@ -1,26 +1,19 @@
+import os
 import requests
 import json
 
 cache = {"access_token": None}
-REFRESH_TOKEN=*** # จะดึงจาก Environment Variables ของ Render
+# ให้ใช้ os.environ.get เพื่อดึงค่าจาก Render Environment
+REFRESH_TOKEN = os.environ.get('REFRESH_TOKEN')
 CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
 
 def refresh_token():
-    # ตรวจสอบก่อนว่าอ่านค่าจากระบบเจอไหม
-    token = os.environ.get('REFRESH_TOKEN')
-    if not token:
-        print("DEBUG: ไม่พบ REFRESH_TOKEN ใน Environment")
-        return "NO_TOKEN_CONFIGURED"
-    
-    payload = {"grant_type": "refresh_token", "refresh_token": token, "client_id": CLIENT_ID}
-    # ... ที่เหลือเหมือนเดิม ...
+    if not REFRESH_TOKEN: return None
+    payload = {"grant_type": "refresh_token", "refresh_token": REFRESH_TOKEN, "client_id": CLIENT_ID}
     try:
         res = requests.post("https://mcp.flowaccount.com/oauth/token", data=payload)
-        data = res.json()
-        if data.get("error") == "session_expired":
-            return "EXPIRED" # ส่งสัญญาณเตือนว่าหมดอายุ
         if res.status_code == 200:
-            cache["access_token"] = data.get('access_token')
+            cache["access_token"] = res.json().get('access_token')
             return cache["access_token"]
     except: pass
     return None
