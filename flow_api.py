@@ -1,9 +1,11 @@
+import os
 import requests
 import json
 
 cache = {"access_token": None}
-REFRESH_TOKEN='NbYe3sbPrvGk8EaV1UYNcexhdKGoxsTVPpxFwEAGE8M'
-CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
+# อ่านค่า Token จากระบบ Environment ของ Render
+REFRESH_TOKEN = os.environ.get('REFRESH_TOKEN')
+CLIENT_ID = os.environ.get('CLIENT_ID', 'claude-MHFByqsmm1J44ZOBX7lSbw')
 
 def refresh_token():
     payload = {"grant_type": "refresh_token", "refresh_token": REFRESH_TOKEN, "client_id": CLIENT_ID}
@@ -18,7 +20,6 @@ def refresh_token():
 def get_all_ri():
     if not cache["access_token"]: cache["access_token"] = refresh_token()
     headers = {"Authorization": f"Bearer {cache['access_token']}", "Content-Type": "application/json"}
-    # ดึงหน้าแรก 50 รายการ
     payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", 
                "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1, "pageSize": 50}}}
     
@@ -26,7 +27,7 @@ def get_all_ri():
         res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
         data = res.json()
         if "result" in data and data["result"].get("content"):
-            return data["result"]["content"][0]["text"] # ส่งข้อความดิบไปโชว์
+            return data["result"]["content"][0]["text"] # ส่งข้อมูลดิบออกมา
         return "ไม่พบข้อมูลจาก API"
     except Exception as e:
         return f"Error: {str(e)}"
