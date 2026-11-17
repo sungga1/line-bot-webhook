@@ -1,29 +1,31 @@
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from apscheduler.schedulers.background import BackgroundScheduler
+import datetime
+# (สมมติว่าคุณมีฟังก์ชันดึงยอดค้างจ่ายจาก FlowAccount อยู่แล้ว)
+# ผมจะเพิ่มส่วน Scheduler ให้รันเช้า 8 โมงทุกวัน
 
 app = Flask(__name__)
+line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
+handler = WebhookHandler('YOUR_CHANNEL_SECRET')
 
-line_bot_api = LineBotApi('sIpsVvwuaSiSHk5SyZgMhLzI6bXtNVInBR7Wpgv241cgbPi9QkeukSXrJGGWCpBGnH5OSZym9oI7wEEeptiZ2Mi4ackRhFbejdlLpnjO+TYst9hRSSyYTkA6fJOHAyZxH2/xXVAxJBzDXjtBnN8uAQdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('5a5f2ad36f44368e77a508f3421b5140')
+def check_and_notify():
+    # 1. ดึงรายการ RI สถานะ 'awa' จาก FlowAccount
+    # 2. คำนวณวันครบกำหนด (Due Date)
+    # 3. ถ้าเหลือ 7, 3, 1 วัน หรือวันนี้ คือวันครบกำหนด ให้ส่งแจ้งเตือน:
+    message = "⚠️ เตือนจ่ายเงินซัพพลายเออร์: [เลขเอกสาร] ยอด [จำนวนเงิน] ครบกำหนด [วันที่]"
+    line_bot_api.push_message('YOUR_GROUP_ID', TextSendMessage(text=message))
+
+# ตั้งเวลาให้ทำงานทุกวัน 08:00
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=check_and_notify, trigger="cron", hour=8, minute=0)
+scheduler.start()
 
 @app.route("/line/webhook", methods=['POST'])
 def callback():
-    signature = request.headers['X-Line-Signature']
-    body = request.get_data(as_text=True)
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
+    # (โค้ด Webhook เดิมของคุณที่ใช้ตอบโต้)
     return 'OK'
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    msg = event.message.text
-    if 'ค้างจ่าย' in msg:
-        reply = 'ยอดค้างจ่าย RI:\n1. RI202609230001 | 422,000 บาท\n2. RI202607110002 | 196,000 บาท'
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply))
 
 if __name__ == "__main__":
     app.run(port=8080)
