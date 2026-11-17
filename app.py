@@ -8,31 +8,33 @@ import requests
 
 app = Flask(__name__)
 
-# --- ตั้งค่า ---
-line_bot_api = LineBotApi('sIpsVvwuaSiSHk5SyZgMhLzI6bXtNVInBR7Wpgv241cgbPi9QkeukSXrJGGWCpBGnH5OSZym9oI7wEEeptiZ2Mi4ackRhFbejdlLpnjO+TYst9hRSSyYTkA6fJOHAyZxH2/xXVAxJBzDXjtBnN8uAQdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('ใส่_CHANNEL5a5f2ad36f44368e77a508f3421b5140')
-MY_GROUP_ID = 'ใส่_GROUP_ID_ที่ดึงได้จากบอท'
-FLOW_ACCESS_TOKEN='ใส่_AC...่นี่'
+# --- ค่าคงที่ (แก้ไขตรงนี้ให้ครบ) ---
+CHANNEL_ACCESS_TOKEN='ใส่_AC...งคุณ'
+CHANNEL_SECRET='ใส่_CH...งคุณ'
+MY_GROUP_ID = 'ใส่_GROUP_ID_ที่ดึงได้'
+FLOW_ACCESS_TOKEN='ใส่_FL...OKEN'
+
+line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(CHANNEL_SECRET)
 
 def get_ri_from_flowaccount():
+    # ดึงรายการ RI
     url = "https://mcp.flowaccount.com/mcp"
     headers = {"Authorization": f"Bearer {FLOW_ACCESS_TOKEN}", "Content-Type": "application/json"}
-    payload = {
-        "jsonrpc": "2.0", "id": 1, "method": "tools/call",
-        "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1, "sort_by": "publishedon:desc"}}
-    }
+    payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", 
+               "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1, "sort_by": "publishedon:desc"}}}
     try:
         response = requests.post(url, json=payload, headers=headers)
         data = response.json()
-        return data["result"]["content"][0]["data"]["list"]
+        items = data["result"]["content"][0]["data"]["list"]
+        return [i for i in items if i['status'].lower().startswith('awa')]
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error fetching FlowAccount: {e}")
         return []
 
 def check_and_notify():
     today = datetime.datetime.now().date()
-    items = get_ri_from_flowaccount()
-    awa_items = [i for i in items if i['status'].lower().startswith('awa')]
+    awa_items = get_ri_from_flowaccount()
     reminders = []
     for item in awa_items:
         due_date = datetime.datetime.strptime(item['dueDate'][:10], '%Y-%m-%d').date()
@@ -40,7 +42,6 @@ def check_and_notify():
         if delta in [7, 3, 1, 0]:
             reminders.append(f"• {item['documentSerial']} | {item['contactName']} | {item['total']} บ. (เหลือ {delta} วัน)")
     if reminders:
-
         line_bot_api.push_message(MY_GROUP_ID, TextSendMessage(text="⚠️ แจ้งเตือนจ่ายเงินซัพพลายเออร์:\n" + "\n".join(reminders)))
 
 scheduler = BackgroundScheduler()
@@ -61,13 +62,11 @@ def callback():
 def handle_message(event):
     if 'ค้างจ่าย' in event.message.text:
         today = datetime.datetime.now().date()
-        items = get_ri_from_flowaccount()
-        awa_items = [i for i in items if i['status'].lower().startswith('awa')]
-        awa_items.sort(key=lambda x: x['dueDate'])
-        
+        awa_items = get_ri_from_flowaccount()
         if not awa_items:
             reply = "ไม่มีรายการที่ต้องจ่ายในระบบครับ"
         else:
+            awa_items.sort(key=lambda x: x['dueDate'])
             upcoming = [i for i in awa_items if (datetime.datetime.strptime(i['dueDate'][:10], '%Y-%m-%d').date() - today).days <= 30]
             if upcoming:
                 reply = "ยอดค้างจ่าย (30 วันข้างหน้า):\n" + "\n".join([f"• {i['documentSerial']} | {i['total']} บ. (ครบ {i['dueDate'][:10]})" for i in upcoming])
