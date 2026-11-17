@@ -20,15 +20,13 @@ def get_all_ri():
     if not cache["access_token"]: cache["access_token"] = refresh_token()
     headers = {"Authorization": f"Bearer {cache['access_token']}", "Content-Type": "application/json"}
     payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", 
-               "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1}}}
+               "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1, "pageSize": 50}}}
     
     try:
         res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
         data = res.json()
-        if "result" in data and "content" in data["result"]:
-            content = data["result"]["content"][0]
-            if "text" in content:
-                inner = json.loads(content["text"])
-                return inner.get("data", {}).get("list", [])
-        return []
-    except: return []
+        # แปลงข้อความดิบออกมาดู
+        raw_text = data["result"]["content"][0]["text"]
+        return raw_text # คืนค่าข้อความดิบไปให้ LINE เลย
+    except Exception as e:
+        return f"Error: {str(e)}"
