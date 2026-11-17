@@ -2,11 +2,11 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from linebot.exceptions import InvalidSignatureError
-import datetime, requests
+import requests
 
 app = Flask(__name__)
 
-# --- ค่าคงที่ ---
+# --- ตั้งค่า ---
 LINE_TOKEN='sIpsVvwuaSiSHk5SyZgMhLzI6bXtNVInBR7Wpgv241cgbPi9QkeukSXrJGGWCpBGnH5OSZym9oI7wEEeptiZ2Mi4ackRhFbejdlLpnjO+TYst9hRSSyYTkA6fJOHAyZxH2/xXVAxJBzDXjtBnN8uAQdB04t89/1O/w1cDnyilFU='
 LINE_SECRET='5a5f2ad36f44368e77a508f3421b5140'
 REFRESH_TOKEN='NbYe3sbPrvGk8EaV1UYNcexhdKGoxsTVPpxFwEAGE8M' # ใส่ Refresh Token ของคุณ
