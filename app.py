@@ -15,15 +15,13 @@ MY_GROUP_ID = 'C646395b06063544d6233261a86851493'
 FLOW_ACCESS_TOKEN='eyJhbGciOiJSUzI1NiIsImtpZCI6IjZGRjk2MDE2NjdFMDhCNjdGRTE4QjIxQ0FERjQzOTAyNDQ0N0E2NzQiLCJ0eXAiOiJhdCtqd3QiLCJ4NXQiOiJiX2xnRm1mZ2kyZi1HTEljcmZRNUFrUkhwblEifQ.eyJuYmYiOjE3OTQ4OTY3MDMsImV4cCI6MTc5NDkwMDMwMywiaXNzIjoiaHR0cHM6Ly9hdXRoLmZsb3dhY2NvdW50LmNvbSIsImF1ZCI6ImZsb3dhY2NvdW50LWFwaSIsImNsaWVudF9pZCI6Im1jcC1nYXRld2F5LXBrY2UiLCJzdWIiOiIxNjg5MTgxIiwiYXV0aF90aW1lIjoxNzk0ODk2NzAzLCJpZHAiOiJsb2NhbCIsImN1cnJlbnRDb21wYW55SWQiOiIyMTQ3MTAzIiwic3VwcG9ydENvZGUiOiJOMTYyMjk3MCIsInBlcm1pc3Npb24iOiI1MTc1NDM1NTkxNjciLCJzY29wZSI6WyJvcGVuaWQiLCJwcm9maWxlIiwiZmxvd2FjY291bnQtYXBpIiwib2ZmbGluZV9hY2Nlc3MiXSwiYW1yIjpbInB3ZCJdfQ.LKyFkhPfkNQkCy4eiJxgJHG6R5B7Jgyeu48MIRqDLVEvdYzIkOUvLwEGcguJ4KH32VJ7n4CsQJMBjm6aY-0oyW-LqkyBZNuAiJ_gucueDzmh2onpIkR-1dgH8uMlM3zre2mxnztSsK-QbLv1vu_yMVHoxEst-ZGNIT7i6hGrJNwxp7nOcCo9Or45LUsXsQKp5xs8MSQrqD5PuUXNz6QSlfdjE8vddevffs1MqLC7ftgb4YX8nUYWtKtp0fKzKMpZvWpig3GpgvLXRWEjl_aMpZ1SOZra44QGMBPDkMhP2HjDB1FEdEYulB_IXjgyV5wzxnIDBcl2DpKhLLi4uVXqmA' # ใส่ Token เต็มของคุณที่นี่
 
 def get_all_ri():
-    # ดึงข้อมูลทั้งหมดจาก FlowAccount เพื่อเอามาจัดการลอจิก
     url = "https://mcp.flowaccount.com/mcp"
     headers = {"Authorization": f"Bearer {FLOW_ACCESS_TOKEN}", "Content-Type": "application/json"}
-    payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", 
-               "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1, "sort_by": "publishedon:desc"}}}
-    try:
-        response = requests.post(url, json=payload, headers=headers)
-        return response.json()["result"]["content"][0]["data"]["list"]
-    except: return []
+    # ... (payload เดิม) ...
+    response = requests.post(url, json=payload, headers=headers)
+    print(f"DEBUG: Status Code = {response.status_code}") # บรรทัดนี้สำคัญมาก
+    print(f"DEBUG: Response Text = {response.text}")      # บรรทัดนี้จะบอกคำตอบจริงๆ
+    # ...
 
 def check_and_notify():
     today = datetime.datetime.now().date()
