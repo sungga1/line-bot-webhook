@@ -6,8 +6,8 @@ import flow_api
 
 app = Flask(__name__)
 
-LINE_TOKEN='sIpsVv...lFU='
-LINE_SECRET='5a5f2a...5140'
+LINE_TOKEN='sIpsVvwuaSiSHk5SyZgMhLzI6bXtNVInBR7Wpgv241cgbPi9QkeukSXrJGGWCpBGnH5OSZym9oI7wEEeptiZ2Mi4ackRhFbejdlLpnjO+TYst9hRSSyYTkA6fJOHAyZxH2/xXVAxJBzDXjtBnN8uAQdB04t89/1O/w1cDnyilFU='
+LINE_SECRET='5a5f2ad36f44368e77a508f3421b5140'
 
 line_bot_api = LineBotApi(LINE_TOKEN)
 handler = WebhookHandler(LINE_SECRET)
