@@ -2,7 +2,7 @@ import requests
 import json
 
 cache = {"access_token": None}
-REFRESH_TOKEN='NbYe3sbPrvGk8EaV1UYNcexhdKGoxsTVPpxFwEAGE8M' # ใส่ Refresh Token ของคุณ
+REFRESH_TOKEN='NbYe3s...GE8M'
 CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
 
 def refresh_token():
@@ -20,18 +20,22 @@ def get_all_ri():
     headers = {"Authorization": f"Bearer {cache['access_token']}", "Content-Type": "application/json"}
     payload = {"jsonrpc": "2.0", "id": 1, "method": "tools/call", 
                "params": {"name": "expense__list_receiving_inventory", "arguments": {"page": 1}}}
-    res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
     
-    # ถ้า session หมดอายุ ให้ลอง refresh token 1 ครั้ง
-    if res.status_code == 401 or "session_expired" in res.text:
-        new_token = refresh_token()
-        if new_token:
-            headers["Authorization"] = f"Bearer {new_token}"
-            res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
-            
-    # DEBUG: ให้บอทคายข้อมูลดิบออกมาทั้งหมด
-    data = res.json()
-    all_items = data["result"]["content"][0]["data"]["list"]
-    print(f"DEBUG: ข้อมูลทั้งหมดที่ดึงได้คือ: {all_items}") 
-    
-    return all_items # ส่งข้อมูลทั้งหมดไปเลย ไม่ต้องกรอง
+    try:
+        res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
+        data = res.json()
+        
+        # ตรวจสอบว่ามี error หรือไม่
+        if "result" in data and "content" in data["result"]:
+            content = data["result"]["content"][0]
+            if "text" in content:
+                inner_data = json.loads(content["text"])
+                # ถ้าเป็น error จาก FlowAccount ให้คืนค่าว่าง
+                if inner_data.get("status") == "error":
+                    print(f"DEBUG: FlowAccount Error = {inner_data.get('message')}")
+                    return []
+                return inner_data.get("data", {}).get("list", [])
+        return []
+    except Exception as e:
+        print(f"DEBUG: Error = {e}")
+        return []
