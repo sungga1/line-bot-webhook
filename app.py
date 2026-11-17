@@ -21,7 +21,7 @@ def refresh_token():
     try:
         res = requests.post("https://mcp.flowaccount.com/oauth/token", data=payload)
         if res.status_code == 200:
-            cache["access_token"] = res.json()['access_token']
+            cache["access_token"] = res.json().get('access_token')
             return cache["access_token"]
     except: pass
     return None
@@ -37,18 +37,19 @@ def get_all_ri():
         new_token = refresh_token()
         if new_token:
             headers["Authorization"] = f"Bearer {new_token}"
-
-res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
+            res = requests.post("https://mcp.flowaccount.com/mcp", json=payload, headers=headers)
     try:
         return res.json()["result"]["content"][0]["data"]["list"]
-    except: return []
+    except:
+        return []
 
 @app.route("/line/webhook", methods=['POST'])
 def callback():
     try:
         handler.handle(request.get_data(as_text=True), request.headers.get('X-Line-Signature'))
-    except InvalidSignatureError: abort(400)
-    return 'OK'
+    except InvalidSignatureError:
+        abort(400)
+return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
