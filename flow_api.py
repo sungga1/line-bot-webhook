@@ -6,8 +6,14 @@ REFRESH_TOKEN=*** # จะดึงจาก Environment Variables ของ Ren
 CLIENT_ID = 'claude-MHFByqsmm1J44ZOBX7lSbw'
 
 def refresh_token():
-    if not REFRESH_TOKEN: return None # ถ้ายังไม่ได้ตั้งค่า
-    payload = {"grant_type": "refresh_token", "refresh_token": REFRESH_TOKEN, "client_id": CLIENT_ID}
+    # ตรวจสอบก่อนว่าอ่านค่าจากระบบเจอไหม
+    token = os.environ.get('REFRESH_TOKEN')
+    if not token:
+        print("DEBUG: ไม่พบ REFRESH_TOKEN ใน Environment")
+        return "NO_TOKEN_CONFIGURED"
+    
+    payload = {"grant_type": "refresh_token", "refresh_token": token, "client_id": CLIENT_ID}
+    # ... ที่เหลือเหมือนเดิม ...
     try:
         res = requests.post("https://mcp.flowaccount.com/oauth/token", data=payload)
         data = res.json()
